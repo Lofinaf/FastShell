@@ -2,6 +2,7 @@
 
 void prompt() {
 	struct __shell Terminal;
+	Terminal.currentdirpath = "C:/Windows/System32";
 	
 	HANDLE console = GetStdHandle(STD_OUTPUT_HANDLE);
 	char input[MAX_COMMAND_LENGTH];
@@ -37,6 +38,14 @@ void prompt() {
 			evalCD(&Terminal, &input);
 		}
 		
+		if (strcmp(input, "p\n") == 0) {
+			evalPaste();
+		}
+
+		if (strcmp(input, "cl\n") == 0) {
+			evalCL(&Terminal);
+		}
+		
 		printf("\n");
     }
 }
@@ -52,13 +61,13 @@ int startWith(const char *str, const char *prefix) {
     return strncmp(str, prefix, prefix_len) == 0;
 }
 
-struct __args split_args(char* input, char** output) {
+int split_args(char input[MAX_ARGS], char** output) {
     int arg_count = 0;
     char arg[MAX_ARG_LEN];
     int arg_pos = 0;
     int quote_flag = 0;
     int i = 0;
-  
+    
     while (input[i] != '\0') {
         if (isspace(input[i]) && !quote_flag) {
             if (arg_pos > 0) {
@@ -92,18 +101,42 @@ struct __args split_args(char* input, char** output) {
     
     output[arg_count] = NULL;
     
-	struct __args args = {arg_count, arg, arg_pos, quote_flag, i};
-    return args;
+    return arg_count;
 }
 
-int evalCD(struct __shell* shell, char* input) {
-	char** Output;
-	struct __args args = split_args(&input, &Output); 
-	if (args->arg_count < 2) {
-		fprintf(stderr, "Usage: cd directory\n");
-		return 1;
-	}
+int evalCL(struct __shell* shell) {
+	printf("\n%s", shell->currentdirpath);
+}
+
+int evalCD(struct __shell* shell, char input[MAX_ARGS]) {
+	char* args[MAX_ARGS];
+	int arg_count = split_args(input, args);
+	
+	printf("Number of arguments: %d\n", arg_count);
+    
+    for (int i = 0; i < arg_count; i++) {
+        printf("Argument %d: '%s'\n", i, args[i]);
+    }
+	
+	shell->currentdirpath = args[1];
     return 0;
+}
+
+char* getClipBoard() {
+    if (OpenClipboard(NULL)) {
+        HANDLE hData = GetClipboardData(CF_TEXT);
+        char *buffer = (char*) GlobalLock(hData);
+        printf("Clipboard contents: %s\n", buffer);
+        GlobalUnlock(hData);
+        CloseClipboard();
+		return buffer;
+    } else {
+        printf("Failed to open clipboard\n");
+    }
+}
+
+int evalPaste() {
+	printf("\n%s", getClipBoard());
 }
 
 int evalLS(struct __shell* shell) {
@@ -113,7 +146,7 @@ int evalLS(struct __shell* shell) {
     DIR *dir;
     struct dirent *entry;
 
-    dir = opendir(shell->currentdirpath);
+    dir = opendir(shell->currentdirpath[0]);
 	
     if (!dir) {
         perror("diropen");
