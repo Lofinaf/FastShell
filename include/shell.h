@@ -12,17 +12,9 @@
 
 #define STRNULL ""
 #define MAX_COMMAND_LENGTH 200
-#define MAX_NUM_ARGUMENTS 10
+#define MAX_NUM_ARGUMENTS 200
 #define MAX_ARGS 200
-#define MAX_ARG_LEN 10
-
-struct __args {
-    int arg_count;
-    char arg[MAX_ARG_LEN];
-    int arg_pos;
-    int quote_flag;
-	int i;
-};
+#define MAX_ARG_LEN 200
 
 struct __shell {
 	
@@ -37,9 +29,12 @@ struct __shell {
 };
 
 void prompt();
+char* getClipBoard();
 int startWith(const char *str, const char *prefix);
-struct __args split_args(char* input, char** output);
-int evalCD(struct __shell* shell, char* input);
+int split_args(char input[MAX_ARGS], char** output);
+int evalCD(struct __shell* shell, char input[MAX_ARGS]);
+int evalPaste();
+int evalCL(struct __shell* shell);
 int evalLS(struct __shell* shell);
 
 #endif
