@@ -1,13 +1,13 @@
 CC=gcc
-CFLAGS=-Iinclude
-SRC=src/main.c src/shell.c
+CFLAGS=-I../include
+SRC=unit.c shell_test.c ../src/shell.c
 OBJ=$(SRC:.c=.o)
-EXEC=fastshell
+EXEC=fastshell_unit
 
 all: $(EXEC)
 
 $(EXEC): $(OBJ)
-	$(CC) $(CFLAGS) $^ -o bin/$@
+	$(CC) $(CFLAGS) $^ -o ../bin/$@
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
